@@ -445,7 +445,7 @@ let wordbank = [];
 let sentencebank = [];
 let progress = { xp:0, streak:0, bestStreak:0, correct:0, total:0 };
 
-let flashState = { level:'全部', pool:[], idx:0, flipped:false };
+let flashState = { level:'全部', queue:[], idx:0, flipped:false };
 let quizState = { level:'全部', dir:'隨機', q:null };
 let sentenceState = { level:'全部', q:null, tokens:[], placed:[] };
 
@@ -715,6 +715,7 @@ function renderFlashFilters(){
   box.innerHTML = opts.map(l => `<button class="chip ${flashState.level===l?'active':''}" data-l="${l}">${l}</button>`).join('');
   box.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
     flashState.level = c.dataset.l;
+    flashState.queue = [];
     flashState.idx = 0;
     flashState.flipped = false;
     renderFlash();
@@ -729,8 +730,14 @@ function renderFlash(){
     body.innerHTML = '<div class="empty"><div class="big">&#128214;</div>這個難度還沒有單字，先到「匯入」新增吧</div>';
     return;
   }
-  if(flashState.idx >= pool.length) flashState.idx = 0;
-  const w = pool[flashState.idx];
+  const poolIds = new Set(pool.map(w => w.id));
+  const queueValid = flashState.queue.length > 0 && flashState.queue.every(id => poolIds.has(id)) && flashState.queue.length === pool.length;
+  if(!queueValid){
+    flashState.queue = shuffle(pool.map(w => w.id));
+    flashState.idx = 0;
+  }
+  if(flashState.idx >= flashState.queue.length) flashState.idx = 0;
+  const w = pool.find(x => x.id === flashState.queue[flashState.idx]);
   body.innerHTML = `
     <div class="flash-card" id="flash-card-el">
       <div class="flash-en">${escapeHtml(w.en)}</div>
@@ -741,7 +748,7 @@ function renderFlash(){
       <button class="btn btn-ghost" id="flash-prev">上一個</button>
       <button class="btn btn-primary" id="flash-next">下一個</button>
     </div>
-    <div class="hint" style="text-align:center;">點卡片可翻面看中文（共 ${pool.length} 個，第 ${flashState.idx+1} 個）</div>
+    <div class="hint" style="text-align:center;">點卡片可翻面看中文（隨機順序，共 ${pool.length} 個，第 ${flashState.idx+1} 個）</div>
   `;
   document.getElementById('flash-card-el').addEventListener('click', (e) => {
     if(e.target.id === 'flash-speak-btn') return;
@@ -753,12 +760,17 @@ function renderFlash(){
     speak(w.en);
   });
   document.getElementById('flash-next').addEventListener('click', () => {
-    flashState.idx = (flashState.idx + 1) % pool.length;
+    if(flashState.idx + 1 >= flashState.queue.length){
+      flashState.queue = shuffle(pool.map(x => x.id));
+      flashState.idx = 0;
+    } else {
+      flashState.idx += 1;
+    }
     flashState.flipped = false;
     renderFlash();
   });
   document.getElementById('flash-prev').addEventListener('click', () => {
-    flashState.idx = (flashState.idx - 1 + pool.length) % pool.length;
+    flashState.idx = (flashState.idx - 1 + flashState.queue.length) % flashState.queue.length;
     flashState.flipped = false;
     renderFlash();
   });
