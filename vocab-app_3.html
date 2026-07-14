@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英文任務系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F4EA;
+  --card:#FFFFFF;
+  --ink:#2B2A25;
+  --ink-soft:#8A897E;
+  --green:#1E9E6C;
+  --green-dark:#12734E;
+  --green-bg:#E3F5EC;
+  --amber:#D9A441;
+  --amber-dark:#9C7223;
+  --amber-bg:#FBF1DD;
+  --red:#E2574C;
+  --red-dark:#A3372F;
+  --red-bg:#FBE7E5;
+  --border:#EAE6D8;
+  --radius:18px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Noto Sans TC','Baloo 2',sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+#app{
+  max-width:480px;
+  margin:0 auto;
+  min-height:100vh;
+  padding:16px 16px 48px;
+}
+h1,h2,h3{font-family:'Baloo 2','Noto Sans TC',sans-serif;margin:0;}
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+}
+.header .lv{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:700;
+  font-size:15px;
+  color:var(--amber-dark);
+}
+.header .stats{
+  display:flex;
+  gap:14px;
+  font-size:14px;
+  color:var(--ink-soft);
+  align-items:center;
+}
+.header .stats b{color:var(--ink);}
+.xpbar{
+  height:8px;
+  background:var(--border);
+  border-radius:99px;
+  overflow:hidden;
+  margin:0 0 18px;
+}
+.xpbar-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--amber),var(--amber-dark));
+  transition:width .3s ease;
+}
+.title-row{
+  text-align:center;
+  margin-bottom:14px;
+}
+.title-row h1{font-size:22px;font-weight:800;}
+.title-row p{margin:2px 0 0;color:var(--ink-soft);font-size:13px;}
+.tabs{
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  padding-bottom:4px;
+  margin-bottom:16px;
+  scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{
+  flex:0 0 auto;
+  padding:9px 14px;
+  border-radius:99px;
+  border:none;
+  background:var(--card);
+  color:var(--ink-soft);
+  font-weight:700;
+  font-size:13px;
+  font-family:inherit;
+  cursor:pointer;
+  white-space:nowrap;
+  border:1px solid var(--border);
+}
+.tab-btn.active{
+  background:var(--green);
+  color:#fff;
+  border-color:var(--green);
+}
+.panel{display:none;}
+.panel.active{display:block;}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:20px;
+  border:1px solid var(--border);
+  margin-bottom:14px;
+}
+.filters{
+  display:flex;
+  gap:8px;
+  margin-bottom:14px;
+  flex-wrap:wrap;
+}
+.chip{
+  padding:6px 13px;
+  border-radius:99px;
+  border:1px solid var(--border);
+  background:var(--card);
+  color:var(--ink-soft);
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  font-family:inherit;
+}
+.chip.active{background:var(--green-bg);color:var(--green-dark);border-color:var(--green);}
+label{font-size:13px;font-weight:700;color:var(--ink-soft);display:block;margin:14px 0 6px;}
+label:first-child{margin-top:0;}
+textarea,select,input[type=text],input[type=password],input[type=email]{
+  width:100%;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 12px;
+  font-size:14px;
+  font-family:inherit;
+  background:#FCFBF6;
+  color:var(--ink);
+  resize:vertical;
+}
+textarea{min-height:110px;line-height:1.6;}
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:11px 18px;
+  border-radius:12px;
+  border:none;
+  font-weight:700;
+  font-size:14px;
+  font-family:inherit;
+  cursor:pointer;
+}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-amber{background:var(--amber);color:#fff;}
+.btn-ghost{background:var(--card);color:var(--ink);border:1px solid var(--border);}
+.btn-danger{background:var(--red-bg);color:var(--red-dark);}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.hint{font-size:12px;color:var(--ink-soft);line-height:1.6;margin-top:6px;}
+.wordlist{max-height:280px;overflow-y:auto;margin-top:10px;}
+.wordrow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:9px 0;
+  border-bottom:1px solid var(--border);
+  font-size:13px;
+}
+.wordrow:last-child{border-bottom:none;}
+.wordrow .info{flex:1;min-width:0;}
+.wordrow .en{font-weight:700;}
+.wordrow .zh{color:var(--ink-soft);}
+.taglvl{
+  font-size:10px;
+  padding:2px 7px;
+  border-radius:99px;
+  margin-left:6px;
+  font-weight:700;
+}
+.taglvl.lvl-easy{background:var(--green-bg);color:var(--green-dark);}
+.taglvl.lvl-mid{background:var(--amber-bg);color:var(--amber-dark);}
+.taglvl.lvl-hard{background:var(--red-bg);color:var(--red-dark);}
+.del-btn{
+  background:none;
+  border:none;
+  color:var(--red-dark);
+  font-size:12px;
+  cursor:pointer;
+  font-weight:700;
+  padding:4px 8px;
+}
+.empty{
+  text-align:center;
+  padding:40px 16px;
+  color:var(--ink-soft);
+}
+.empty .big{font-size:34px;margin-bottom:8px;}
+.flash-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  border:1px solid var(--border);
+  min-height:220px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  cursor:pointer;
+  padding:24px;
+  text-align:center;
+}
+.flash-en{font-size:30px;font-weight:800;font-family:'Baloo 2',sans-serif;}
+.flash-zh{font-size:18px;color:var(--green-dark);font-weight:700;min-height:26px;}
+.speaker{
+  background:var(--green-bg);
+  color:var(--green-dark);
+  border:none;
+  border-radius:99px;
+  padding:9px 16px;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  font-family:inherit;
+}
+.q-prompt{
+  text-align:center;
+  padding:22px 16px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:14px;
+}
+.q-prompt .qword{font-size:26px;font-weight:800;font-family:'Baloo 2',sans-serif;}
+.q-prompt .qsub{font-size:12px;color:var(--ink-soft);margin-bottom:6px;font-weight:700;}
+.options{display:flex;flex-direction:column;gap:9px;}
+.opt-btn{
+  text-align:left;
+  padding:13px 16px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:var(--card);
+  font-size:14px;
+  font-weight:500;
+  font-family:inherit;
+  cursor:pointer;
+  color:var(--ink);
+}
+.opt-btn.correct{background:var(--green-bg);border-color:var(--green);color:var(--green-dark);font-weight:700;}
+.opt-btn.wrong{background:var(--red-bg);border-color:var(--red);color:var(--red-dark);font-weight:700;}
+.opt-btn:disabled{cursor:default;}
+.feedback{
+  text-align:center;
+  font-weight:700;
+  margin:12px 0;
+  font-size:14px;
+}
+.feedback.correct{color:var(--green-dark);}
+.feedback.wrong{color:var(--red-dark);}
+.sentence-zh{
+  text-align:center;
+  font-size:17px;
+  font-weight:700;
+  padding:18px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:14px;
+}
+.answer-area{
+  min-height:56px;
+  border:1.5px dashed var(--border);
+  border-radius:12px;
+  padding:10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:12px;
+  background:#FCFBF6;
+}
+.pool-area{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:14px;
+}
+.word-chip{
+  padding:9px 14px;
+  border-radius:10px;
+  background:var(--card);
+  border:1px solid var(--border);
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  font-family:inherit;
+}
+.word-chip.placed{background:var(--green-bg);border-color:var(--green);color:var(--green-dark);}
+.sub-tabs{display:flex;gap:6px;margin-bottom:12px;}
+.sub-tab{
+  flex:1;
+  padding:9px;
+  text-align:center;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--card);
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+  font-family:inherit;
+  color:var(--ink-soft);
+}
+.sub-tab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.sub-panel{display:none;}
+.sub-panel.active{display:block;}
+.count-badge{
+  font-size:12px;
+  color:var(--ink-soft);
+  margin-bottom:8px;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="header">
+    <div class="lv"><span id="lv-icon">&#9876;</span> <span id="lv-text">Lv.1</span></div>
+    <div class="stats">
+      <span>&#128293; <b id="streak-text">0</b></span>
+      <span>&#127942; <b id="trophy-text">0</b></span>
+    </div>
+  </div>
+  <div class="xpbar"><div class="xpbar-fill" id="xpbar-fill" style="width:0%"></div></div>
+
+  <div class="title-row">
+    <h1>英文任務系統</h1>
+    <p id="wordcount-sub">共 0 字</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn" data-tab="import">匯入</button>
+    <button class="tab-btn" data-tab="flash">閃卡</button>
+    <button class="tab-btn" data-tab="quiz">單字測驗</button>
+    <button class="tab-btn" data-tab="sentence">重組句子</button>
+  </div>
+
+  <div class="panel" id="panel-import">
+    <div id="auth-box"></div>
+    <div class="sub-tabs">
+      <button class="sub-tab active" data-sub="word">單字匯入</button>
+      <button class="sub-tab" data-sub="sent">句子匯入</button>
+    </div>
+
+    <div class="sub-panel active" id="sub-word">
+      <div id="word-edit-area" style="display:none;">
+        <div class="card">
+          <label>貼上單字（每行一筆，格式：英文,中文意思,難度）</label>
+          <textarea id="word-input" placeholder="apple,蘋果,Starters&#10;semester,學期,L3&#10;nonetheless,儘管如此；然而,L6"></textarea>
+          <div class="hint">難度請填 Starters、L1、L2、L3、L4、L5、L6 其中一個。</div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="word-add-btn">新增到單字庫</button>
+            <button class="btn btn-danger" id="word-clear-btn">清空單字庫</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="count-badge" id="word-list-count">共 0 個單字</div>
+        <div class="wordlist" id="word-list"></div>
+      </div>
+    </div>
+
+    <div class="sub-panel" id="sub-sent">
+      <div id="sent-edit-area" style="display:none;">
+        <div class="card">
+          <label>貼上句子（每行一筆，格式：英文句子,難度）</label>
+          <textarea id="sent-input" placeholder="She was tired nonetheless and still finished her homework.,L6"></textarea>
+          <div class="hint">此區用於「重組句子」模式，英文句子會被拆成單字讓學生排序，請確認標點符號與大小寫。</div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="sent-add-btn">新增到句子庫</button>
+            <button class="btn btn-danger" id="sent-clear-btn">清空句子庫</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="count-badge" id="sent-list-count">共 0 個句子</div>
+        <div class="wordlist" id="sent-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-flash">
+    <div class="filters" id="flash-filters"></div>
+    <div id="flash-body"></div>
+  </div>
+
+  <div class="panel" id="panel-quiz">
+    <div class="filters" id="quiz-filters"></div>
+    <div class="filters" id="quiz-dir-filters"></div>
+    <div id="quiz-body"></div>
+  </div>
+
+  <div class="panel" id="panel-sentence">
+    <div class="filters" id="sentence-filters"></div>
+    <div id="sentence-body"></div>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyA0pra9gbdvgkFW4IQkZ16b2ekEnu3hrSE",
+  authDomain: "kays-english-class.firebaseapp.com",
+  projectId: "kays-english-class",
+  storageBucket: "kays-english-class.firebasestorage.app",
+  messagingSenderId: "13346678049",
+  appId: "1:13346678049:web:515cf9b7c94b63265dca60"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+let currentUser = null;
+
+const LEVELS = ['Starters','L1','L2','L3','L4','L5','L6'];
+
+function levelClass(level){
+  if(level === 'Starters' || level === 'L1' || level === 'L2') return 'lvl-easy';
+  if(level === 'L3' || level === 'L4') return 'lvl-mid';
+  return 'lvl-hard';
+}
+
+let wordbank = [];
+let sentencebank = [];
+let progress = { xp:0, streak:0, bestStreak:0, correct:0, total:0 };
+
+let flashState = { level:'全部', pool:[], idx:0, flipped:false };
+let quizState = { level:'全部', dir:'隨機', q:null };
+let sentenceState = { level:'全部', q:null, tokens:[], placed:[] };
+
+function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
+
+async function storageGet(key, shared, fallback){
+  if(shared){
+    try{
+      const snap = await db.collection('data').doc(key).get();
+      return snap.exists ? snap.data().list : fallback;
+    }catch(e){
+      console.error('firestore get failed', key, e);
+      return fallback;
+    }
+  }
+  try{
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  }catch(e){
+    return fallback;
+  }
+}
+async function storageSet(key, shared, value){
+  if(shared){
+    try{
+      await db.collection('data').doc(key).set({ list: value });
+    }catch(e){
+      console.error('firestore set failed', key, e);
+      alert('儲存失敗，請確認已用老師帳號登入');
+    }
+    return;
+  }
+  try{
+    localStorage.setItem(key, JSON.stringify(value));
+  }catch(e){
+    console.error('storage set failed', key, e);
+  }
+}
+
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)){ alert('這個瀏覽器不支援語音播放'); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    u.rate = 0.92;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function filterByLevel(list, level){
+  if(level === '全部') return list;
+  return list.filter(w => w.level === level);
+}
+
+async function saveProgress(){
+  await storageSet('progress', false, progress);
+  renderHeader();
+}
+
+function renderHeader(){
+  const lv = Math.floor(progress.xp/20) + 1;
+  const xpInLevel = progress.xp % 20;
+  document.getElementById('lv-text').textContent = 'Lv.' + lv;
+  document.getElementById('streak-text').textContent = progress.streak;
+  document.getElementById('trophy-text').textContent = progress.correct;
+  document.getElementById('xpbar-fill').style.width = (xpInLevel/20*100) + '%';
+  document.getElementById('wordcount-sub').textContent = '共 ' + wordbank.length + ' 字 / ' + sentencebank.length + ' 句';
+}
+
+function recordAnswer(isCorrect){
+  progress.total += 1;
+  if(isCorrect){
+    progress.correct += 1;
+    progress.xp += 1;
+    progress.streak += 1;
+    if(progress.streak > progress.bestStreak) progress.bestStreak = progress.streak;
+  } else {
+    progress.streak = 0;
+  }
+  saveProgress();
+}
+
+/* ---------- AUTH ---------- */
+function renderAuthUI(){
+  const box = document.getElementById('auth-box');
+  if(currentUser){
+    box.innerHTML = `
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span class="hint" style="margin:0;">已登入：${escapeHtml(currentUser.email)}</span>
+          <button class="btn btn-ghost" id="logout-btn" style="padding:6px 12px;font-size:12px;">登出</button>
+        </div>
+      </div>`;
+    document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+  } else {
+    box.innerHTML = `
+      <div class="card">
+        <label>老師登入</label>
+        <input type="email" id="login-email" placeholder="email">
+        <label>密碼</label>
+        <input type="password" id="login-pass" placeholder="密碼">
+        <div class="btn-row"><button class="btn btn-primary" id="login-btn">登入</button></div>
+        <div class="hint">學生不需要登入，直接使用「閃卡」「單字測驗」「重組句子」即可。匯入與刪除功能僅限老師登入後使用。</div>
+      </div>`;
+    document.getElementById('login-btn').addEventListener('click', async () => {
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      try{
+        await auth.signInWithEmailAndPassword(email, pass);
+      }catch(e){
+        alert('登入失敗：' + e.message);
+      }
+    });
+  }
+  document.getElementById('word-edit-area').style.display = currentUser ? 'block' : 'none';
+  document.getElementById('sent-edit-area').style.display = currentUser ? 'block' : 'none';
+  renderWordList();
+  renderSentList();
+}
+
+auth.onAuthStateChanged(user => {
+  currentUser = user;
+  renderAuthUI();
+});
+
+/* ---------- TABS ---------- */
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+  if(name === 'flash') renderFlash();
+  if(name === 'quiz') renderQuiz();
+  if(name === 'sentence') renderSentenceTab();
+}
+document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+document.querySelectorAll('.sub-tab').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.sub-tab').forEach(x => x.classList.toggle('active', x === b));
+  document.querySelectorAll('.sub-panel').forEach(p => p.classList.toggle('active', p.id === 'sub-' + b.dataset.sub));
+}));
+
+/* ---------- IMPORT ---------- */
+function renderWordList(){
+  const box = document.getElementById('word-list');
+  document.getElementById('word-list-count').textContent = '共 ' + wordbank.length + ' 個單字';
+  if(wordbank.length === 0){
+    box.innerHTML = '<div class="empty"><div class="big">&#128218;</div>還沒有單字，貼上內容後按「新增到單字庫」</div>';
+    return;
+  }
+  box.innerHTML = wordbank.map(w => `
+    <div class="wordrow">
+      <div class="info"><span class="en">${escapeHtml(w.en)}</span> <span class="taglvl ${levelClass(w.level)}">${w.level}</span><br><span class="zh">${escapeHtml(w.zh)}</span></div>
+      ${currentUser ? `<button class="del-btn" data-id="${w.id}">刪除</button>` : ''}
+    </div>`).join('');
+  box.querySelectorAll('.del-btn').forEach(btn => btn.addEventListener('click', async () => {
+    wordbank = wordbank.filter(w => w.id !== btn.dataset.id);
+    await storageSet('wordbank', true, wordbank);
+    renderWordList();
+    renderHeader();
+  }));
+}
+
+function renderSentList(){
+  const box = document.getElementById('sent-list');
+  document.getElementById('sent-list-count').textContent = '共 ' + sentencebank.length + ' 個句子';
+  if(sentencebank.length === 0){
+    box.innerHTML = '<div class="empty"><div class="big">&#9997;</div>還沒有句子，貼上內容後按「新增到句子庫」</div>';
+    return;
+  }
+  box.innerHTML = sentencebank.map(s => `
+    <div class="wordrow">
+      <div class="info"><span class="en">${escapeHtml(s.en)}</span> <span class="taglvl ${levelClass(s.level)}">${s.level}</span></div>
+      ${currentUser ? `<button class="del-btn" data-id="${s.id}">刪除</button>` : ''}
+    </div>`).join('');
+  box.querySelectorAll('.del-btn').forEach(btn => btn.addEventListener('click', async () => {
+    sentencebank = sentencebank.filter(s => s.id !== btn.dataset.id);
+    await storageSet('sentencebank', true, sentencebank);
+    renderSentList();
+    renderHeader();
+  }));
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function parseThreeFields(line){
+  const firstComma = line.indexOf(',');
+  if(firstComma === -1) return null;
+  const first = line.slice(0, firstComma).trim();
+  const rest = line.slice(firstComma + 1);
+  const lastComma = rest.lastIndexOf(',');
+  if(lastComma === -1) return null;
+  const middle = rest.slice(0, lastComma).trim();
+  const last = rest.slice(lastComma + 1).trim();
+  return [first, middle, last];
+}
+
+document.getElementById('word-add-btn').addEventListener('click', async () => {
+  const raw = document.getElementById('word-input').value;
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  let added = 0, skipped = 0;
+  lines.forEach(line => {
+    const parts = parseThreeFields(line);
+    if(!parts || !LEVELS.includes(parts[2])){ skipped++; return; }
+    const [en, zh, level] = parts;
+    if(!en || !zh){ skipped++; return; }
+    wordbank.push({ id: uid(), en, zh, level });
+    added++;
+  });
+  await storageSet('wordbank', true, wordbank);
+  document.getElementById('word-input').value = '';
+  renderWordList();
+  renderHeader();
+  if(skipped > 0) alert('已新增 ' + added + ' 個單字，' + skipped + ' 行格式錯誤被略過（請確認難度欄位為 Starters/L1~L6 其中一個，且英文與難度欄位之間至少要有中文意思）');
+});
+
+document.getElementById('word-clear-btn').addEventListener('click', async () => {
+  if(!confirm('確定要清空整個單字庫嗎？此動作無法復原。')) return;
+  wordbank = [];
+  await storageSet('wordbank', true, wordbank);
+  renderWordList();
+  renderHeader();
+});
+
+document.getElementById('sent-add-btn').addEventListener('click', async () => {
+  const raw = document.getElementById('sent-input').value;
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  let added = 0, skipped = 0;
+  lines.forEach(line => {
+    const lastComma = line.lastIndexOf(',');
+    if(lastComma === -1){ skipped++; return; }
+    const en = line.slice(0, lastComma).trim();
+    const level = line.slice(lastComma + 1).trim();
+    if(!en || !LEVELS.includes(level)){ skipped++; return; }
+    sentencebank.push({ id: uid(), en, level });
+    added++;
+  });
+  await storageSet('sentencebank', true, sentencebank);
+  document.getElementById('sent-input').value = '';
+  renderSentList();
+  renderHeader();
+  if(skipped > 0) alert('已新增 ' + added + ' 個句子，' + skipped + ' 行格式錯誤被略過（請確認難度欄位為 Starters/L1~L6 其中一個）');
+});
+
+document.getElementById('sent-clear-btn').addEventListener('click', async () => {
+  if(!confirm('確定要清空整個句子庫嗎？此動作無法復原。')) return;
+  sentencebank = [];
+  await storageSet('sentencebank', true, sentencebank);
+  renderSentList();
+  renderHeader();
+});
+
+/* ---------- FLASHCARD ---------- */
+function renderFlashFilters(){
+  const box = document.getElementById('flash-filters');
+  const opts = ['全部', ...LEVELS];
+  box.innerHTML = opts.map(l => `<button class="chip ${flashState.level===l?'active':''}" data-l="${l}">${l}</button>`).join('');
+  box.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+    flashState.level = c.dataset.l;
+    flashState.idx = 0;
+    flashState.flipped = false;
+    renderFlash();
+  }));
+}
+
+function renderFlash(){
+  renderFlashFilters();
+  const body = document.getElementById('flash-body');
+  const pool = filterByLevel(wordbank, flashState.level);
+  if(pool.length === 0){
+    body.innerHTML = '<div class="empty"><div class="big">&#128214;</div>這個難度還沒有單字，先到「匯入」新增吧</div>';
+    return;
+  }
+  if(flashState.idx >= pool.length) flashState.idx = 0;
+  const w = pool[flashState.idx];
+  body.innerHTML = `
+    <div class="flash-card" id="flash-card-el">
+      <div class="flash-en">${escapeHtml(w.en)}</div>
+      <div class="flash-zh">${flashState.flipped ? escapeHtml(w.zh) : ''}</div>
+      <button class="speaker" id="flash-speak-btn">&#128266; 播放發音</button>
+    </div>
+    <div class="btn-row" style="justify-content:center;margin-top:14px;">
+      <button class="btn btn-ghost" id="flash-prev">上一個</button>
+      <button class="btn btn-primary" id="flash-next">下一個</button>
+    </div>
+    <div class="hint" style="text-align:center;">點卡片可翻面看中文（共 ${pool.length} 個，第 ${flashState.idx+1} 個）</div>
+  `;
+  document.getElementById('flash-card-el').addEventListener('click', (e) => {
+    if(e.target.id === 'flash-speak-btn') return;
+    flashState.flipped = !flashState.flipped;
+    renderFlash();
+  });
+  document.getElementById('flash-speak-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    speak(w.en);
+  });
+  document.getElementById('flash-next').addEventListener('click', () => {
+    flashState.idx = (flashState.idx + 1) % pool.length;
+    flashState.flipped = false;
+    renderFlash();
+  });
+  document.getElementById('flash-prev').addEventListener('click', () => {
+    flashState.idx = (flashState.idx - 1 + pool.length) % pool.length;
+    flashState.flipped = false;
+    renderFlash();
+  });
+}
+
+/* ---------- QUIZ ---------- */
+function renderQuizFilters(){
+  const box = document.getElementById('quiz-filters');
+  const opts = ['全部', ...LEVELS];
+  box.innerHTML = opts.map(l => `<button class="chip ${quizState.level===l?'active':''}" data-l="${l}">${l}</button>`).join('');
+  box.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+    quizState.level = c.dataset.l;
+    quizState.q = null;
+    renderQuiz();
+  }));
+  const dbox = document.getElementById('quiz-dir-filters');
+  const dirs = ['隨機','英翻中','中翻英'];
+  dbox.innerHTML = dirs.map(d => `<button class="chip ${quizState.dir===d?'active':''}" data-d="${d}">${d}</button>`).join('');
+  dbox.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+    quizState.dir = c.dataset.d;
+    quizState.q = null;
+    renderQuiz();
+  }));
+}
+
+function newQuizQuestion(pool){
+  const dir = quizState.dir === '隨機' ? (Math.random() < 0.5 ? '英翻中' : '中翻英') : quizState.dir;
+  const answer = pool[Math.floor(Math.random()*pool.length)];
+  const others = shuffle(pool.filter(w => w.id !== answer.id)).slice(0,3);
+  const optSource = dir === '英翻中' ? 'zh' : 'en';
+  let options = shuffle([answer, ...others].map(w => ({ id:w.id, text:w[optSource] })));
+  return { dir, answer, options, answered:false };
+}
+
+function renderQuiz(){
+  renderQuizFilters();
+  const body = document.getElementById('quiz-body');
+  const pool = filterByLevel(wordbank, quizState.level);
+  if(pool.length < 4){
+    body.innerHTML = '<div class="empty"><div class="big">&#10067;</div>這個難度至少需要 4 個單字才能出題，先到「匯入」新增更多單字吧</div>';
+    return;
+  }
+  if(!quizState.q) quizState.q = newQuizQuestion(pool);
+  const q = quizState.q;
+  const promptText = q.dir === '英翻中' ? q.answer.en : q.answer.zh;
+  body.innerHTML = `
+    <div class="q-prompt">
+      <div class="qsub">${q.dir === '英翻中' ? '這個字是什麼意思？' : '哪一個英文是這個意思？'}</div>
+      <div class="qword">${escapeHtml(promptText)}</div>
+    </div>
+    <div class="options" id="quiz-options"></div>
+    <div class="feedback" id="quiz-feedback"></div>
+    <div class="btn-row" style="justify-content:center;" id="quiz-next-row"></div>
+  `;
+  const optBox = document.getElementById('quiz-options');
+  q.options.forEach(opt => {
+    const b = document.createElement('button');
+    b.className = 'opt-btn';
+    b.textContent = opt.text;
+    b.addEventListener('click', () => {
+      if(q.answered) return;
+      q.answered = true;
+      const correct = opt.id === q.answer.id;
+      document.querySelectorAll('#quiz-options .opt-btn').forEach(el => {
+        if(el.textContent === (q.dir === '英翻中' ? q.answer.zh : q.answer.en)) el.classList.add('correct');
+      });
+      if(!correct) b.classList.add('wrong');
+      document.getElementById('quiz-feedback').textContent = correct ? '答對了！' : '答錯了，正確答案已標出';
+      document.getElementById('quiz-feedback').className = 'feedback ' + (correct ? 'correct' : 'wrong');
+      document.querySelectorAll('#quiz-options .opt-btn').forEach(el => el.disabled = true);
+      document.getElementById('quiz-next-row').innerHTML = '<button class="btn btn-primary" id="quiz-next-btn">下一題</button>';
+      document.getElementById('quiz-next-btn').addEventListener('click', () => {
+        quizState.q = newQuizQuestion(pool);
+        renderQuiz();
+      });
+      recordAnswer(correct);
+    });
+    optBox.appendChild(b);
+  });
+}
+
+/* ---------- SENTENCE REORDER ---------- */
+function renderSentenceFilters(){
+  const box = document.getElementById('sentence-filters');
+  const opts = ['全部', ...LEVELS];
+  box.innerHTML = opts.map(l => `<button class="chip ${sentenceState.level===l?'active':''}" data-l="${l}">${l}</button>`).join('');
+  box.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+    sentenceState.level = c.dataset.l;
+    sentenceState.q = null;
+    renderSentenceTab();
+  }));
+}
+
+function newSentenceQuestion(pool){
+  const answer = pool[Math.floor(Math.random()*pool.length)];
+  const tokens = answer.en.trim().split(/\s+/);
+  return { answer, tokens, order: shuffle(tokens.map((t,i)=>i)), placed: [], answered:false };
+}
+
+const SENTENCE_PROMPT = '請把下面打散的單字排成正確的英文句子';
+
+function renderSentenceTab(){
+  renderSentenceFilters();
+  const body = document.getElementById('sentence-body');
+  const pool = filterByLevel(sentencebank, sentenceState.level);
+  if(pool.length === 0){
+    body.innerHTML = '<div class="empty"><div class="big">&#9997;</div>這個難度還沒有句子，先到「匯入」新增句子吧</div>';
+    return;
+  }
+  if(!sentenceState.q) sentenceState.q = newSentenceQuestion(pool);
+  drawSentence();
+}
+
+function drawSentence(){
+  const body = document.getElementById('sentence-body');
+  const q = sentenceState.q;
+  body.innerHTML = `
+    <div class="sentence-zh">${SENTENCE_PROMPT}</div>
+    <label>你的答案</label>
+    <div class="answer-area" id="answer-area"></div>
+    <label>點選單字加入答案</label>
+    <div class="pool-area" id="pool-area"></div>
+    <div class="feedback" id="sentence-feedback"></div>
+    <div class="btn-row" style="justify-content:center;" id="sentence-btn-row">
+      <button class="btn btn-ghost" id="sentence-reset">重新排列</button>
+      <button class="btn btn-primary" id="sentence-check">送出答案</button>
+    </div>
+  `;
+  const answerArea = document.getElementById('answer-area');
+  const poolArea = document.getElementById('pool-area');
+  answerArea.innerHTML = q.placed.map(i => `<button class="word-chip placed" data-i="${i}">${escapeHtml(q.tokens[i])}</button>`).join('');
+  const remaining = q.order.filter(i => !q.placed.includes(i));
+  poolArea.innerHTML = remaining.map(i => `<button class="word-chip" data-i="${i}">${escapeHtml(q.tokens[i])}</button>`).join('');
+
+  answerArea.querySelectorAll('.word-chip').forEach(chip => chip.addEventListener('click', () => {
+    if(q.answered) return;
+    const i = Number(chip.dataset.i);
+    q.placed = q.placed.filter(x => x !== i);
+    drawSentence();
+  }));
+  poolArea.querySelectorAll('.word-chip').forEach(chip => chip.addEventListener('click', () => {
+    if(q.answered) return;
+    const i = Number(chip.dataset.i);
+    q.placed.push(i);
+    drawSentence();
+  }));
+  document.getElementById('sentence-reset').addEventListener('click', () => {
+    q.placed = [];
+    drawSentence();
+  });
+  document.getElementById('sentence-check').addEventListener('click', () => {
+    if(q.answered) return;
+    const userAnswer = q.placed.map(i => q.tokens[i]).join(' ');
+    const correct = userAnswer === q.tokens.join(' ');
+    q.answered = true;
+    document.getElementById('sentence-feedback').textContent = correct ? '答對了！' : '順序不太對，正確句子：' + q.tokens.join(' ');
+    document.getElementById('sentence-feedback').className = 'feedback ' + (correct ? 'correct' : 'wrong');
+    document.getElementById('sentence-btn-row').innerHTML = '<button class="btn btn-primary" id="sentence-next">下一題</button>';
+    document.getElementById('sentence-next').addEventListener('click', () => {
+      const pool = filterByLevel(sentencebank, sentenceState.level);
+      sentenceState.q = newSentenceQuestion(pool);
+      renderSentenceTab();
+    });
+    recordAnswer(correct);
+  });
+}
+
+/* ---------- INIT ---------- */
+async function init(){
+  wordbank = await storageGet('wordbank', true, []);
+  sentencebank = await storageGet('sentencebank', true, []);
+  progress = await storageGet('progress', false, { xp:0, streak:0, bestStreak:0, correct:0, total:0 });
+  renderHeader();
+  renderWordList();
+  renderSentList();
+  switchTab(wordbank.length === 0 ? 'import' : 'flash');
+}
+init();
+</script>
+</body>
+</html>
